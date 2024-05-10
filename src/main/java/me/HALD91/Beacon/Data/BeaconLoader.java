@@ -14,7 +14,7 @@ public class BeaconLoader {
         ArrayList<Beacon> beacons = new ArrayList<>();
         int fileID = 0;
         while (beaconFound) {
-            File file = new File("plugins/BeaconDrop/Data/BeaconID" + fileID + ".yml");
+            File file = new File(Main.getInstance().getDataFolder(),"/Data/BeaconID" + fileID + ".yml");
             YamlConfiguration yamlConfiguration = YamlConfiguration.loadConfiguration(file);
             if (!file.exists())
                 beaconFound = false;
@@ -27,13 +27,13 @@ public class BeaconLoader {
             String worldName = yamlConfiguration.getString("beacon.worldName");
             long cd = System.currentTimeMillis();
             Beacon beacon = new Beacon(id, x, y, z, Bukkit.getWorld(worldName).getBlockAt(x, y, z), worldName, cd);
-            Bukkit.getConsoleSender().sendMessage(Main.getInstance().getCfg().getPrefix() + "found at: " + x + " " + y + " " + z);
+            Bukkit.getConsoleSender().sendMessage(Main.getInstance().getConfig().getString("plugin.prefix") + "found at: " + x + " " + y + " " + z);
             Main.getInstance().addBeacon(beacon);
             fileID++;
             file.delete();
         }
         if (beacons.size() == 0)
-            Bukkit.getConsoleSender().sendMessage(Main.getInstance().getCfg().getPrefix() + "Beacon found!");
+            Bukkit.getConsoleSender().sendMessage(Main.getInstance().getConfig().getString("plugin.prefix") + "Beacon found!");
         Main.getInstance().setBeacons(beacons);
     }
 
@@ -43,7 +43,7 @@ public class BeaconLoader {
             return;
         int a = 0;
         for (Beacon beacon : beacons) {
-            File file = new File("plugins/BeaconDrop/Data/BeaconID" + a + ".yml");
+            File file = new File(Main.getInstance().getDataFolder(),"/Data/BeaconID" + a + ".yml");
             YamlConfiguration yamlConfiguration = YamlConfiguration.loadConfiguration(file);
             yamlConfiguration.set("beacon.x", Integer.valueOf(beacon.getX()));
             yamlConfiguration.set("beacon.y", Integer.valueOf(beacon.getY()));

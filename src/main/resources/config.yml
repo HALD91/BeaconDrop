@@ -1,0 +1,5 @@
+plugin:
+  prefix: '&8[&eSystem&8]'
+  cooldown: 60
+  diffitems: 4
+  dropamount: 24

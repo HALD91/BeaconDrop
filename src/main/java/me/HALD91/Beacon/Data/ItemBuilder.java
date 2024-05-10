@@ -1,16 +1,37 @@
 package me.HALD91.Beacon.Data;
 
 import me.HALD91.Beacon.Main.Main;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
+
 public class ItemBuilder {
-    public void BuildItem(Material material, String enchantments, int dropChance) {
+    public void BuildItem(Material material, String enchantments, int dropChance, String name, boolean blore1, String slore1, boolean blore2, String slore2) {
         String[] enchantmentList = enchantments.split(",");
         ItemStack itemStack = new ItemStack(material);
         ItemMeta meta = itemStack.getItemMeta();
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+        if (blore1 && blore2) {
+            ArrayList Lore = new ArrayList();
+            Lore.add(ChatColor.translateAlternateColorCodes('&', slore1));
+            Lore.add(ChatColor.translateAlternateColorCodes('&', slore2));
+            meta.setLore(Lore);
+        } else {
+            if (blore1) {
+                ArrayList Lore = new ArrayList();
+                Lore.add(ChatColor.translateAlternateColorCodes('&', slore1));
+                meta.setLore(Lore);
+            }
+            if (blore2) {
+                ArrayList Lore = new ArrayList();
+                Lore.add(ChatColor.translateAlternateColorCodes('&', slore2));
+                meta.setLore(Lore);
+            }
+        }
         for (String s : enchantmentList) {
             if (s.equalsIgnoreCase("1"))
                 meta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1, false);
@@ -67,23 +88,34 @@ public class ItemBuilder {
             if (s.equalsIgnoreCase("27"))
                 meta.addEnchant(Enchantment.DAMAGE_ALL, 3, false);
             if (s.equalsIgnoreCase("28"))
-                meta.addEnchant(Enchantment.KNOCKBACK, 1, false);
+                meta.addEnchant(Enchantment.DAMAGE_ALL, 4, false);
             if (s.equalsIgnoreCase("29"))
-                meta.addEnchant(Enchantment.KNOCKBACK, 2, false);
+                meta.addEnchant(Enchantment.KNOCKBACK, 1, false);
             if (s.equalsIgnoreCase("30"))
-                meta.addEnchant(Enchantment.FIRE_ASPECT, 1, false);
+                meta.addEnchant(Enchantment.KNOCKBACK, 2, false);
             if (s.equalsIgnoreCase("31"))
-                meta.addEnchant(Enchantment.DURABILITY, 1, false);
+                meta.addEnchant(Enchantment.FIRE_ASPECT, 1, false);
             if (s.equalsIgnoreCase("32"))
-                meta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
+                meta.addEnchant(Enchantment.FIRE_ASPECT, 2, false);
             if (s.equalsIgnoreCase("33"))
-                meta.addEnchant(Enchantment.ARROW_DAMAGE, 2, false);
+                meta.addEnchant(Enchantment.DURABILITY, 1, false);
             if (s.equalsIgnoreCase("34"))
-                meta.addEnchant(Enchantment.ARROW_DAMAGE, 3, false);
+                meta.addEnchant(Enchantment.DURABILITY, 1, false);
             if (s.equalsIgnoreCase("35"))
-                meta.addEnchant(Enchantment.ARROW_DAMAGE, 4, false);
+                meta.addEnchant(Enchantment.DURABILITY, 1, false);
             if (s.equalsIgnoreCase("36"))
+                meta.addEnchant(Enchantment.ARROW_DAMAGE, 1, false);
+            if (s.equalsIgnoreCase("37"))
+                meta.addEnchant(Enchantment.ARROW_DAMAGE, 2, false);
+            if (s.equalsIgnoreCase("38"))
+                meta.addEnchant(Enchantment.ARROW_DAMAGE, 3, false);
+            if (s.equalsIgnoreCase("39"))
+                meta.addEnchant(Enchantment.ARROW_DAMAGE, 4, false);
+            if (s.equalsIgnoreCase("40"))
                 meta.addEnchant(Enchantment.ARROW_DAMAGE, 5, false);
+        }
+        if (itemStack.getType().equals(Material.GOLDEN_APPLE)) {
+            itemStack = new ItemStack(Material.GOLDEN_APPLE, 1, (short) 1);
         }
         itemStack.setItemMeta(meta);
         Item item = new Item(itemStack, dropChance);

@@ -1,5 +1,6 @@
 package me.HALD91.Beacon.Listener;
 
+import me.HALD91.Beacon.Config.Messages;
 import me.HALD91.Beacon.Data.Beacon;
 import me.HALD91.Beacon.Data.Item;
 import me.HALD91.Beacon.Main.Main;
@@ -20,8 +21,10 @@ public class PartyBeaconEvent implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEvent playerInteractEvent) {
         Player player = playerInteractEvent.getPlayer();
-        if (!player.hasPermission("bp.activate"))
+        if (!player.hasPermission("bp.activate")) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',Messages.getMessage("BeaconDrop.Permission.Message")));
             return;
+        }
         if (playerInteractEvent.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
             Beacon beacon = null;
             Block block = playerInteractEvent.getClickedBlock();
@@ -33,9 +36,8 @@ public class PartyBeaconEvent implements Listener {
                 return;
             if (beacon.getCd() > System.currentTimeMillis() || beacon.getCd() == System.currentTimeMillis()) {
                 long a = beacon.getCd();
-                a -= System.currentTimeMillis();
                 playerInteractEvent.setCancelled(true);
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&',Main.getInstance().getCfg().getPrefix() + " " + Main.getInstance().getMessages().getBeaconDC().replace("%time%", (a / 60000L) + " min")));
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&',Main.getInstance().getConfig().getString("plugin.prefix") + " " + Messages.getMessage("BeaconDrop.beaconDC").replace("%time%", remainingTime(a))));
                 return;
             }
             Main.getInstance().getBeacons().remove(beacon);
@@ -43,6 +45,21 @@ public class PartyBeaconEvent implements Listener {
             Main.getInstance().addBeacon(beacon);
             startDrop(beacon, block);
             playerInteractEvent.setCancelled(true);
+        }
+    }
+
+    public String remainingTime(long endTime) {
+        long currentTime = System.currentTimeMillis();
+        long remainingTime = endTime - currentTime;
+
+        if (remainingTime <= 0) { // Time has passed
+            return null;
+        } else if (remainingTime < 60000) { // Less than a minute
+            long remainingSeconds = remainingTime / 1000;
+            return remainingSeconds + " seconds";
+        } else { // More than a minute
+            long remainingMinutes = remainingTime / 60000;
+            return remainingMinutes + " minutes";
         }
     }
 
@@ -63,7 +80,7 @@ public class PartyBeaconEvent implements Listener {
                                     public void run() {
                                         PartyBeaconEvent.this.playSoundAll(block.getLocation(), Sound.CLICK);
                                         PartyBeaconEvent.this.sendDropMessageAll(0, block);
-                                        PartyBeaconEvent.this.dropItems(block);
+                                        PartyBeaconEvent.this.drop(block);
                                     }
                                 },20L);
                             }
@@ -72,16 +89,6 @@ public class PartyBeaconEvent implements Listener {
                 },20L);
             }
         },20L);
-    }
-
-    private void dropItems(final Block block) {
-        for (int i = 0; i < Main.getInstance().getCfg().getDropamount(); i++) {
-            Bukkit.getScheduler().scheduleSyncDelayedTask((Plugin)Main.getInstance(), new Runnable() {
-                public void run() {
-                    PartyBeaconEvent.this.drop(block);
-                }
-            },  (20 * i));
-        }
     }
 
     private int random(int max, int min) {
@@ -93,49 +100,76 @@ public class PartyBeaconEvent implements Listener {
     }
 
     private void drop(Block block) {
-        ItemStack itemStack;
-        int random = random(Main.getInstance().allDropRates(), 0);
-        Item item = findItem(random);
-        playEffectAll(block);
-        playSoundAll(block.getLocation(), Sound.LEVEL_UP);
-        Location loc = block.getLocation();
-        int neg = random(6, 0);
-        double x = 0.2D;
-        double y = 0.2D;
-        double z = 0.2D;
-        if (neg == 1) {
-            x = 0.3D;
-            z = -0.1D;
-            y = 0.3D;
+        int dropAmount = Main.getInstance().getConfig().getInt("plugin.dropamount"); // Total number of items to drop
+        int numberOfItemsToDrop = (int) (Math.random() * 1) + 3; // Random value between 3 and 5 for the first batch
+
+        dropItemsInBatches(block, dropAmount, numberOfItemsToDrop, 40L); // Start dropping items
+    }
+
+    private void dropItemsInBatches(Block block, int dropAmount, int numberOfItemsToDrop, long delay) {
+        if (dropAmount <= 0) return; // No more items to drop
+
+        // Drop a batch of items
+        dropBatch(block, numberOfItemsToDrop);
+
+        // Update drop amount
+        dropAmount -= numberOfItemsToDrop;
+
+        final int finalDropAmount = dropAmount;
+        final int finalNumberOfItemsToDrop = numberOfItemsToDrop;
+        final long finalDelay = delay;
+
+        // Schedule next batch if there are more items to drop
+        if (dropAmount > 0) {
+            // Delayed task to drop the next batch after 1 second
+            Bukkit.getScheduler().scheduleSyncDelayedTask((Plugin) Main.getInstance(), () ->
+                    dropItemsInBatches(block, finalDropAmount, finalNumberOfItemsToDrop, finalDelay), finalDelay);
         }
-        if (neg == 2) {
-            x = -0.3D;
-            z = -0.1D;
-            y = 0.3D;
+    }
+
+
+    private void dropBatch(Block block, int numberOfItemsToDrop) {
+        for (int i = 0; i < numberOfItemsToDrop; i++) {
+            // Generate and drop each item individually
+            ItemStack itemStack;
+            int randomRate = random(Main.getInstance().allDropRates(), 0);
+            Item item = findItem(randomRate);
+
+            Location loc = block.getLocation().add(0.5, 2.0, 0.5); // Adjusted to a higher position above the beacon
+
+            // Limit the range of random offsets for initial position within the 3 by 3 area
+            double xOffset;
+            double zOffset;
+            do {
+                xOffset = (Math.random() - 0.5) * 0.5; // Random value between -0.25 and 0.25 for x-coordinate
+                zOffset = (Math.random() - 0.5) * 0.5; // Random value between -0.25 and 0.25 for z-coordinate
+            } while (Math.abs(xOffset) > 0.75 || Math.abs(zOffset) > 0.75); // Ensure offsets are within the 3 by 3 area
+
+            loc.add(xOffset, 0, zOffset); // Apply the random offsets to initial position
+
+            // Adjust the position slightly up
+            loc.add(0, -0.25, 0);
+
+            Vector vector = getRandomVector(); // Get a random vector for initial velocity
+
+            if (item == null) {
+                itemStack = new ItemStack(Material.DIAMOND_SWORD);
+            } else {
+                itemStack = item.getItemStack();
+            }
+
+            // Drop the item with the adjusted velocity
+            playEffectAll(block);
+            playSoundAll(block.getLocation(), Sound.CLICK);
+            block.getWorld().dropItem(loc, itemStack).setVelocity(vector);
         }
-        if (neg == 3) {
-            x = -0.3D;
-            z = 0.1D;
-            y = 0.3D;
-        }
-        if (neg == 4) {
-            x = 0.1D;
-            z = -0.3D;
-            y = 0.3D;
-        }
-        if (neg == 5) {
-            x = -0.1D;
-            z = 0.3D;
-            y = 0.3D;
-        }
-        Vector vector = new Vector(x, y, z);
-        loc.setY(loc.getY() + 2.0D);
-        if (item.getItemStack() == null) {
-            itemStack = new ItemStack(Material.STONE);
-        } else {
-            itemStack = item.getItemStack();
-        }
-        block.getWorld().dropItemNaturally(loc, itemStack).setVelocity(vector);
+    }
+
+    // Generate a random velocity vector within the confined space around the beacon
+    private Vector getRandomVector() {
+        double x = (Math.random() * 2 - 1) * 0.1; // Random value between -0.1 and 0.1 for x-coordinate
+        double z = (Math.random() * 2 - 1) * 0.1; // Random value between -0.1 and 0.1 for z-coordinate
+        return new Vector(x, 0.2, z); // Adjusted initial upward velocity
     }
 
     private Item findItem(int random) {
@@ -162,7 +196,7 @@ public class PartyBeaconEvent implements Listener {
 
     private void sendDropMessageAll(int a, Block b) {
         for (Player player : Bukkit.getOnlinePlayers())
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',Main.getInstance().getCfg().getPrefix() + " " + Main.getInstance().getMessages().getBeaconCountdown().replace("%cords%", "X: " + b.getX() + " Y: " + b.getY() + " Z: " + b.getZ()).replace("%time%", a + "")));
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',Main.getInstance().getConfig().getString("plugin.prefix") + " " + Messages.getMessage("BeaconDrop.beaconCountdown").replace("%cords%", "X: " + b.getX() + " Y: " + b.getY() + " Z: " + b.getZ()).replace("%time%", a + "")));
     }
 
     private void playSoundAll(Location location, Sound sound) {

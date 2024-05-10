@@ -1,5 +1,6 @@
 package me.HALD91.Beacon.BeaconRegister;
 
+import me.HALD91.Beacon.Config.Messages;
 import me.HALD91.Beacon.Data.Beacon;
 import me.HALD91.Beacon.Main.Main;
 import org.bukkit.ChatColor;
@@ -23,7 +24,7 @@ public class BeaconRegister implements Listener {
             return;
         playerInteractEvent.setCancelled(true);
         Main.getInstance().addBeacon(beacon);
-        playerInteractEvent.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',Main.getInstance().getCfg().getPrefix() + " " + Main.getInstance().getMessages().getBeaconCreate()));
+        playerInteractEvent.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',Main.getInstance().getConfig().getString("plugin.prefix") + " " + Messages.getMessage("BeaconDrop.beaconCreate")));
         Main.getInstance().removeBpRegister(playerInteractEvent.getPlayer());
     }
 }

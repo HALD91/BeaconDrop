@@ -27,35 +27,8 @@ public class BeaconListener implements Listener {
         if (isRight == null)
             return;
         Main.getInstance().removeBeacon(isRight);
-        onRemoveBeacon.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',Main.getInstance().getCfg().getPrefix() + " " + "&5Partybeacon &cdestroyed!"));
+        onRemoveBeacon.getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&',Main.getInstance().getConfig().getString("plugin.prefix") + " " + "&5Partybeacon &cdestroyed!"));
         Main.getInstance().removeBpRemove(onRemoveBeacon.getPlayer());
         onRemoveBeacon.getClickedBlock().setType(Material.AIR);
     }
-   /* @EventHandler
-    public void onDestroy(BlockBreakEvent blockBreakEvent) {
-        Player playermode = blockBreakEvent.getPlayer();
-        if (playermode.getGameMode() == GameMode.CREATIVE) {
-            if (blockBreakEvent.getBlock().getType().equals(Material.BEACON)) {
-                Beacon isRight = null;
-                for (Beacon beacon : Main.getInstance().getBeacons()) {
-                    if (blockBreakEvent.getBlock().getX() == beacon.getX() && blockBreakEvent.getBlock().getY() == beacon.getY() && blockBreakEvent.getBlock().getZ() == beacon.getZ())
-                        isRight = beacon;
-                }
-                if (isRight == null)
-                    return;
-                Player player = blockBreakEvent.getPlayer();
-                if (player.hasPermission("bp.break")) {
-                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', Main.getInstance().getCfg().getPrefix() + " " + "&5Partybeacon &cdestroyed!"));
-                    Main.getInstance().removeBeacon(isRight);
-                    return;
-                }
-                blockBreakEvent.setCancelled(true);
-            }
-        } else {
-            Player player = blockBreakEvent.getPlayer();
-            blockBreakEvent.setCancelled(true);
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', Main.getInstance().getCfg().getPrefix() + " " + "&cYou need to be in creative to destory a PartyBeacon"));
-        }
-    }
-    */
 }

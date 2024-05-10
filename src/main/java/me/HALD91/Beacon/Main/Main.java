@@ -11,6 +11,7 @@ import me.HALD91.Beacon.Data.Item;
 import me.HALD91.Beacon.Listener.BeaconListener;
 import me.HALD91.Beacon.Listener.PartyBeaconEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -103,15 +104,15 @@ public class Main extends JavaPlugin {
                         Bukkit.getServer().shutdown();
                 }
                 Loader loader = new me.HALD91.Beacon.Config.Loader();
-                Bukkit.getConsoleSender().sendMessage(getCfg().getPrefix() + "&astored in instance!");
-                Bukkit.getConsoleSender().sendMessage(getCfg().getPrefix() + "&aloading beacons!");
+                Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&',Main.getInstance().getConfig().getString("plugin.prefix") + "&astored in instance!"));
+                Bukkit.getConsoleSender().sendMessage(ChatColor.translateAlternateColorCodes('&',Main.getInstance().getConfig().getString("plugin.prefix") + "&aloading beacons!"));
                 this.beaconLoader.loadAllBeacons();
 
                 getCommand("BeaconDrop").setExecutor((CommandExecutor)new CommandManager());
                 Bukkit.getServer().getPluginManager().registerEvents((Listener)new BeaconListener(), (Plugin)this);
                 Bukkit.getServer().getPluginManager().registerEvents((Listener)new PartyBeaconEvent(), (Plugin)this);
                 Bukkit.getServer().getPluginManager().registerEvents((Listener)new BeaconRegister(), (Plugin)this);
-                setCd(minuteToMilliseconds(getCfg().getCooldown()));
+                setCd(minuteToMilliseconds(getConfig().getInt("plugin.cooldown")));
         }
 
         private BeaconLoader beaconLoader = new BeaconLoader();
